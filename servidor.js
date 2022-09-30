@@ -6,7 +6,7 @@ const Pacote = require('./Pacote');
 let server = net.createServer();
 const buffer = Buffer.alloc(3);
 server.on('connection', handleConnection);
-server.listen(5353,'127.0.0.1', function() {tc
+server.listen(5353,'172.31.90.228', function() {
   console.log('server listening to %j', server.address());
 });
 function handleConnection(conn) {
