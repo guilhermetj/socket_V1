@@ -16,47 +16,29 @@ function handleConnection(conn) {
   conn.once('close', onConnClose);
   conn.on('error', onConnError);
 
-  function onConnData(d) {
-    console.log('connection data from %s: %j', remoteAddress, d.toString('hex'));
-    if(d[0] == 0x01){
-      console.log('Tipo do Pacote: Head');
+  function  onConnData(d) {
+      console.log('connection data from %s: %j', remoteAddress, d.toString('hex'));
       console.log('Comprimento do Pacote: %j', d[1]);
       console.log('Versão do Hardware: %j', d[4]);
       console.log('Versão do Firmware: %j', d[6]);
       //var imei = Buffer.from(d.buffer,0,14);
       //console.log('IMEI: %s', imei);
-      //console.log(imei);
       var crcCalc = Buffer.from(d.buffer,0,(d.length - 2));
       var sum = crc16.checkSum(crcCalc, {retType: 'buffer'});
-      let pacote = {pacote_blob : d, pacote_varbinary : d, pacote_text : d, pacote_hex: d.toString('hex'), crc: 0x02 +sum.toString('hex')};
-      SalvarPacote(pacote);
+      //var tipo_pacote = d[0] == 0x01 ? 'head' : 'Body';
+      //let pacote = {pacote_blob : d, 
+       //             pacote_varbinary : d, 
+       //             tipo_pacote : tipo_pacote, 
+       //             pacote_hex: d.toString('hex'),
+       //             buffer_pacote : Buffer.from(d.buffer,0,d.length ), 
+        //            crc: 0x02 +sum.toString('hex')};
+      //SalvarPacote(pacote);
       //SalvarBanco()
-      console.log(pacote);
       console.log('result: ' + 0x02 + sum.toString('hex'));
       buffer[0] = 0x02;
       buffer[1] = sum[0];
       buffer[2] = sum[1];
       conn.write(buffer);
-    }else{
-      console.log('Tipo do Pacote: Body');
-      console.log('Comprimento do Pacote: %j', d[1]);
-      console.log('Versão do Hardware: %j', d[4]);
-      console.log('Versão do Firmware: %j', d[6]);
-      //var imei = Buffer.from(d.buffer,0,14);
-      //console.log('IMEI: %s', imei);
-      //console.log(imei);
-      var crcCalc = Buffer.from(d.buffer,0,(d.length - 2));
-      var sum = crc16.checkSum(crcCalc, {retType: 'buffer'});
-      let pacote = {pacote_blob : d, pacote_varbinary : d, pacote_text : d, pacote_hex: d.toString('hex'), crc: 0x02 +sum.toString('hex')};
-      SalvarPacote(pacote);
-      //SalvarBanco()
-      console.log(pacote);
-      console.log('result: ' + 0x02 + sum.toString('hex'));
-      buffer[0] = 0x02;
-      buffer[1] = sum[0];
-      buffer[2] = sum[1];
-      conn.write(buffer);
-    }
   }
   function onConnClose() {
     console.log('connection from %s closed', remoteAddress);

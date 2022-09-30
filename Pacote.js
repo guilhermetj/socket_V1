@@ -12,12 +12,15 @@ const Pacote = bd.define('pacotes', {
         type: Sequelize.BLOB
     },
     pacote_varbinary:{
-        type: 'VARBINARY(1024)'
+        type: 'VARBINARY(8000)'
     },
-    pacote_text:{
+    tipo_pacote:{
         type: Sequelize.TEXT
     },
     pacote_hex:{
+        type: Sequelize.TEXT
+    },
+    buffer_pacote:{
         type: Sequelize.TEXT
     },
     crc:{
