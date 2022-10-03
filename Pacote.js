@@ -20,9 +20,6 @@ const Pacote = bd.define('pacotes', {
     pacote_hex:{
         type: Sequelize.TEXT
     },
-    buffer_pacote:{
-        type: Sequelize.TEXT
-    },
     crc:{
         type: Sequelize.TEXT
     }

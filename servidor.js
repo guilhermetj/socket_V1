@@ -6,39 +6,22 @@ const Pacote = require('./Pacote');
 let server = net.createServer();
 const buffer = Buffer.alloc(3);
 server.on('connection', handleConnection);
-server.listen(5353,'172.31.90.228', function() {
+server.listen(9990,'127.0.0.1', function() {
   console.log('server listening to %j', server.address());
 });
 function handleConnection(conn) {
   var remoteAddress = conn.remoteAddress + ':' + conn.remotePort;
   console.log('new client connection from %s', remoteAddress);
+  let finalData = [];
+  let isFinish = false;
   conn.on('data', onConnData);
   conn.once('close', onConnClose);
   conn.on('error', onConnError);
 
-  function  onConnData(d) {
-      console.log('connection data from %s: %j', remoteAddress, d.toString('hex'));
-      console.log('Comprimento do Pacote: %j', d[1]);
-      console.log('Versão do Hardware: %j', d[4]);
-      console.log('Versão do Firmware: %j', d[6]);
-      //var imei = Buffer.from(d.buffer,0,14);
-      //console.log('IMEI: %s', imei);
-      var crcCalc = Buffer.from(d.buffer,0,(d.length - 2));
-      var sum = crc16.checkSum(crcCalc, {retType: 'buffer'});
-      //var tipo_pacote = d[0] == 0x01 ? 'head' : 'Body';
-      //let pacote = {pacote_blob : d, 
-       //             pacote_varbinary : d, 
-       //             tipo_pacote : tipo_pacote, 
-       //             pacote_hex: d.toString('hex'),
-       //             buffer_pacote : Buffer.from(d.buffer,0,d.length ), 
-        //            crc: 0x02 +sum.toString('hex')};
-      //SalvarPacote(pacote);
-      //SalvarBanco()
-      console.log('result: ' + 0x02 + sum.toString('hex'));
-      buffer[0] = 0x02;
-      buffer[1] = sum[0];
-      buffer[2] = sum[1];
-      conn.write(buffer);
+  function  onConnData(data) {
+      finalData.push(data);
+      console.log("push teste");
+      setTimeout(onFinishPackage, 1000);
   }
   function onConnClose() {
     console.log('connection from %s closed', remoteAddress);
@@ -46,7 +29,34 @@ function handleConnection(conn) {
   function onConnError(err) {
     console.log('Connection %s error: %s', remoteAddress, err.message);
   }
-
+  function onFinishPackage(){
+    if(isFinish){
+      return
+    }
+      finalData = Buffer.concat(finalData);
+      //console.log(finalData);
+      let crcCalc = Buffer.from(finalData.buffer,0,(finalData.length - 2));
+      let sum = crc16.checkSum(crcCalc, {retType: 'buffer'});
+      var tipo_pacote = finalData[0] == 0x01 ? 'head' : 'Body';
+      let pacote = {pacote_blob : finalData, 
+                   pacote_varbinary : finalData, 
+                   tipo_pacote : tipo_pacote, 
+                   pacote_hex: finalData.toString('hex'),
+                   crc: 0x02 +sum.toString('hex')};
+      SalvarPacote(pacote);
+      console.log(pacote);;
+      //SalvarBanco()
+      console.log('result: ' + 0x02 + sum.toString('hex'));
+      buffer[0] = 0x02;
+      buffer[1] = sum[0];
+      buffer[2] = sum[1];
+      conn.write(buffer);
+      isFinish = true;
+      setTimeout(onReleaseSend, 1000);
+  }
+  function onReleaseSend(){
+    isFinish = false
+  }
   function SalvarBanco(data) {
     axios.post('https://cto.gsantos.eng.br/api/receiving', data).then(res => {
       console.log(`statusCode: ${res.status}`);
